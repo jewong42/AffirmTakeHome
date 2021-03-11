@@ -8,18 +8,20 @@ compileKotlin {
 }
 
 dependencies {
+    def appDependencies = rootProject.ext.appDependencies
+    def domainDependencies = rootProject.ext.domainDependencies
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0"
 
-    implementation "com.google.dagger:dagger-android-support:2.33"
-    implementation "com.google.dagger:dagger:2.33"
-    kapt "com.google.dagger:dagger-compiler:2.33"
-    kapt "com.google.dagger:dagger-android-processor:2.33"
+    implementation appDependencies.daggerAndroidSupport
+    implementation appDependencies.dagger
+    kapt appDependencies.daggerCompiler
+    kapt appDependencies.daggerAndroidProcessor
 
-    implementation "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.5.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
+    implementation domainDependencies.retrofit
+    implementation domainDependencies.okhttp
 }
 
 sourceCompatibility = 1.8

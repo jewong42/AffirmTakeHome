@@ -25,3 +25,22 @@ allprojects {
 task clean(type: Delete) {
   delete rootProject.buildDir
 }
+
+ext {
+  appDependencies = [
+          daggerAndroidSupport  : "com.google.dagger:dagger-android-support:2.33",
+          dagger                : "com.google.dagger:dagger:2.33",
+          daggerCompiler        : "com.google.dagger:dagger-compiler:2.33",
+          daggerAndroidProcessor: "com.google.dagger:dagger-android-processor:2.33"
+  ]
+  domainDependencies = [
+          retrofit: "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.5.0",
+          okhttp  : "com.squareup.okhttp3:logging-interceptor:4.9.0"
+  ]
+  presentationDependencies = [
+          material           : "com.google.android.material:material:1.3.0",
+          viewmodel          : "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0",
+          viewmodelSavedState: "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.0",
+          livedata           : "androidx.lifecycle:lifecycle-livedata-ktx:2.3.0"
+  ]
+}
