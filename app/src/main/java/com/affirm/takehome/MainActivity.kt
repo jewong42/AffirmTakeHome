@@ -67,16 +67,18 @@ class MainActivity : DaggerAppCompatActivity() {
 
         yesButton.setOnClickListener {
             // Make sure the previous animation finishes
-            if (!animating) {
-                if (viewPager.currentItem + 1 >= (viewPager.adapter?.itemCount ?: 0)) return@setOnClickListener
+            val isLoading = progress_bar.visibility == View.VISIBLE
+            val hasMore = viewPager.currentItem + 1 < (viewPager.adapter?.itemCount ?: 0)
+            if (!animating && hasMore && !isLoading) {
                 mViewModel.incrementYesCount()
                 animateIcon(THUMB_UP)
             }
         }
 
         noButton.setOnClickListener {
-            if (!animating) {
-                if (viewPager.currentItem + 1 >= (viewPager.adapter?.itemCount ?: 0)) return@setOnClickListener
+            val isLoading = progress_bar.visibility == View.VISIBLE
+            val hasMore = viewPager.currentItem + 1 < (viewPager.adapter?.itemCount ?: 0)
+            if (!animating && hasMore && !isLoading) {
                 mViewModel.incrementNoCount()
                 animateIcon(THUMB_DOWN)
             }
