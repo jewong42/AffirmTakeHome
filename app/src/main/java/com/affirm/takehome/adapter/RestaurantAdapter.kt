@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.affirm.takehome.R
-import com.affirm.takehome.data.Restaurant
+import com.jewong.takehome.data.model.Restaurant
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.restaurant_item_view.view.*
 
@@ -39,6 +39,8 @@ class RestaurantAdapter: RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHo
             itemView.restaurantRatingTextView.text = restaurant.rating
             if (restaurant.image.isNotBlank()) {
                 Picasso.get().load(restaurant.image).into(itemView.imageView)
+            } else {
+                itemView.imageView.setImageResource(R.drawable.ic_black_logo_white_bg)
             }
         }
     }

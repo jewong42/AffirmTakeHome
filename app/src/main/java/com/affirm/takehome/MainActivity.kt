@@ -9,36 +9,37 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
+import com.affirm.takehome.dagger.ViewModelFactory
 import com.affirm.takehome.adapter.RestaurantAdapter
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.snackbar.Snackbar
+import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlin.properties.Delegates.observable
+import javax.inject.Inject
 
 private const val LOCATION_PERMISSION_CODE = 101
 private const val THUMB_UP = R.drawable.thumb_up
 private const val THUMB_DOWN = R.drawable.thumb_down
 private const val TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : DaggerAppCompatActivity() {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private lateinit var mViewModel : MainViewModel
 
     private var animating = false
 
     private val restaurantAdapter by lazy {
         RestaurantAdapter()
-    }
-
-    private var yesCounter: Int by observable(0) { _, _, newValue ->
-        yesCounterText.text = newValue.toString()
-    }
-
-    private var noCounter: Int by observable(0) { _, _, newValue ->
-        noCounterText.text = newValue.toString()
     }
 
     private val fusedLocationProviderClient by lazy {
@@ -50,32 +51,58 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        mViewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
+        initObservers()
         viewPager.adapter = restaurantAdapter
         // Only allow button input, swiping not allowed
         viewPager.isUserInputEnabled = false
 
+        viewPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val leftToConsume = (viewPager?.adapter?.itemCount ?: 0) - position
+                if (leftToConsume <= THRESHOLD_SIZE) checkAndRequestPermissionsForLocation()
+                super.onPageSelected(position)
+            }
+        })
+
         yesButton.setOnClickListener {
             // Make sure the previous animation finishes
             if (!animating) {
-                yesCounter++
-                viewPager.currentItem = viewPager.currentItem + 1
+                if (viewPager.currentItem + 1 >= (viewPager.adapter?.itemCount ?: 0)) return@setOnClickListener
+                mViewModel.incrementYesCount()
                 animateIcon(THUMB_UP)
             }
         }
 
         noButton.setOnClickListener {
             if (!animating) {
-                noCounter++
-                viewPager.currentItem = viewPager.currentItem + 1
+                if (viewPager.currentItem + 1 >= (viewPager.adapter?.itemCount ?: 0)) return@setOnClickListener
+                mViewModel.incrementNoCount()
                 animateIcon(THUMB_DOWN)
             }
         }
+        if (savedInstanceState == null) checkAndRequestPermissionsForLocation()
+    }
 
-        yesCounterText.text = yesCounter.toString()
-        noCounterText.text = noCounter.toString()
-
-        checkAndRequestPermissionsForLocation()
+    private fun initObservers() {
+        mViewModel.loadingVisibility.observe(this, Observer { visibility ->
+            progress_bar.visibility = visibility
+        })
+        mViewModel.showError.observe(this, Observer { error ->
+            if (!error.isNullOrEmpty()) Snackbar.make(main_activity_container, error, Snackbar.LENGTH_SHORT).show()
+        })
+        mViewModel.restaurants.observe(this, Observer { list ->
+            val newRestaurants = list.toList().subList(restaurantAdapter.itemCount, list.size)
+            restaurantAdapter.addRestaurants(newRestaurants)
+        })
+        mViewModel.yesCount.observe(this, Observer { count ->
+            viewPager.currentItem = viewPager.currentItem + 1
+            yesCounterText.text = count.toString()
+        })
+        mViewModel.noCount.observe(this, Observer { count ->
+            viewPager.currentItem = viewPager.currentItem + 1
+            noCounterText.text = count.toString()
+        })
     }
 
     private fun animateIcon(drawable: Int) {
@@ -111,6 +138,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.no_permission), Toast.LENGTH_LONG).show()
             }
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     private fun checkAndRequestPermissionsForLocation() {
@@ -145,7 +173,7 @@ class MainActivity : AppCompatActivity() {
                                     Log.d(TAG, "Location load fail")
                                     false
                                 } else {
-                                    // TODO: load restaurants using "location"
+                                    mViewModel.getRestaurants(location)
                                     true
                                 }
                             }
@@ -155,9 +183,12 @@ class MainActivity : AppCompatActivity() {
                     null
                 )
             } else {
-                // TODO: load restaurants using "location"
+                mViewModel.getRestaurants(location)
             }
         }
     }
 
+    companion object {
+        const val THRESHOLD_SIZE = 10
+    }
 }
