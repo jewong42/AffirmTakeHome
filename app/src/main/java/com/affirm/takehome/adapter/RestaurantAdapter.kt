@@ -38,7 +38,10 @@ class RestaurantAdapter: RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHo
             itemView.restaurantNameTextView.text = restaurant.name
             itemView.restaurantRatingTextView.text = restaurant.rating
             if (restaurant.image.isNotBlank()) {
-                Picasso.get().load(restaurant.image).into(itemView.imageView)
+                Picasso.get()
+                    .load(restaurant.image)
+                    .error(R.drawable.ic_black_logo_white_bg)
+                    .into(itemView.imageView)
             } else {
                 itemView.imageView.setImageResource(R.drawable.ic_black_logo_white_bg)
             }
