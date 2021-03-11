@@ -1,7 +1,11 @@
-package com.affirm.takehome.network.yelp
+package com.jewong.takehome.network.deprecated.yelp
 
+import com.jewong.takehome.network.model.yelp.YelpResponse
+import com.jewong.takehome.network.service.yelp.YelpRestaurantService
 import retrofit2.Call
 
+@Suppress("unused", "DEPRECATION")
+@Deprecated("Use RestaurantApi instead.")
 class YelpRestaurantApi(private val yelpRestaurantService: YelpRestaurantService) {
     fun getRestaurants(latitude: Double, longitude: Double, offset: Int): Call<YelpResponse> {
         return yelpRestaurantService.getYelpRestaurants(TOKEN, latitude, longitude, offset)

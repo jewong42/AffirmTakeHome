@@ -1,4 +1,4 @@
-package com.affirm.takehome.network.zomato
+package com.jewong.takehome.network.model.zomato
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
